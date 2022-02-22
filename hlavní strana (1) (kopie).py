@@ -6,87 +6,13 @@ data = json.load(f)
 #Úvod hry
 print("Vítejte u hry BlackJack.")
 print("\nNejprve si prosím zvolte svou přezdívku. Máte možnost zadat jakékoliv znaky.")
-#Vytvoření karet na hraní
-hracovy_karty = []
-dealerovy_karty = []
-balicek = [2, 3, 4, 5, 6, 7, 8, 9, 10, "J", "Q", "K", "A"]
-def total(hand):
-    total = 0
-    for card in hand:
-        if card == "J" or card == "Q" or card == "K":
-            total += 10
-        elif card == "A":
-            if total >= 11:
-                total += 1
-            else:
-                total += 11
-        else:
-            total += card
-    return total
-#karty hráče
-def karty_zacatek():
-    for i in range(2):
-        random.shuffle(balicek)
-        karta_2 = balicek.pop()
-        if karta_2 == "J":
-            karta_2 = 10
-        if karta_2 == "Q":
-            karta_2 = 10
-        if karta_2 == "K":
-            karta_2 = 10
-        if karta_2 == "A":
-            karta_2 = 10
-        hracovy_karty.append(karta_2)
-        print(karta_2)
-def karta_random():
-    for a in range(1):
-        random.shuffle(balicek)
-        karta_1 = balicek.pop()
-        if karta_1 == "J":
-            karta_1 = 10
-        if karta_1 == "Q":
-            karta_1 = 10
-        if karta_1 == "K":
-            karta_1 = 10
-        if karta_1 == "A":
-            karta_1 = 10
-        hracovy_karty.append(karta_1)
-        print(karta_1)
-#karty dealera
-def karty_zacatek_dealer():
-    for i in range(2):
-        random.shuffle(balicek)
-        karta_2 = balicek.pop()
-        if karta_2 == "J":
-            karta_2 = 10
-        if karta_2 == "Q":
-            karta_2 = 10
-        if karta_2 == "K":
-            karta_2 = 10
-        if karta_2 == "A":
-            karta_2 = 10
-        dealerovy_karty.append(karta_2)
-        print(karta_2)
-def karta_random_dealer():
-    for a in range(1):
-        random.shuffle(balicek)
-        karta_1 = balicek.pop()
-        if karta_1 == "J":
-            karta_1 = 10
-        if karta_1 == "Q":
-            karta_1 = 10
-        if karta_1 == "K":
-            karta_1 = 10
-        if karta_1 == "A":
-            karta_1 = 10
-        dealerovy_karty.append(karta_1)
-        print(karta_1)
 #Hlavní menu
 def menu1(money, prezdivka):
     print("\nHrát novou hru- 1")
     print("Změna přezdívky- 2")
     print("Pravidla hry- 3")
     print("Ukončit hru- 4")
+    print("Žebříček- 5")
 
     menu = input("\nVaše volba: ")
     #Začátek hry
@@ -145,46 +71,167 @@ def menu1(money, prezdivka):
         print("\nDěkujeme za vyzkoušení!!!")
         print("\nUkončuji program")
         quit()
+    elif menu == str(5):
+        users = []
+        for x in data:
+            users.append((x["name"], x["penize"], x["pocet_her"]))
+        users.sort(key=lambda a: a[1], reverse=True)
+        leaderboard = map(
+            lambda user: user[0] + " | Peníze :" + str(user[1]) + " KČ | Počet odehraných her :" + str(user[2]), users)
+        print("\n".join(leaderboard))
+        print("\n")
+        menu1(money, prezdivka)
     #Jiná možnost
     else:
         print("\nNeplatný znak!!!")
         menu1(money, prezdivka)
-#Funkce na lízání karet
-def karty_lizani(ztrata, vyhra, money, prezdivka):
-    print("\nChcete dolíznout další kartu?")
-    print("\nANO- 1")
-    print("NE- 2")
-    volba_karty = input("\nVaše volba->")
-    #Volby hráče na líznutí či stání
-    if volba_karty == str(1):
-        print("\nDolízli jste si:")
-        karta_random()
-        if total(hracovy_karty) == 21:
-            print("BlackJack, vyhráli jste!!!")
-            money = vyhra
-            print("Máte:", money, "KČ")
-            menu1(money, prezdivka)
-        elif total(hracovy_karty) > 21:
-            print("\nBohužel jste prohráli!!!")
-            money = ztrata
-            print("Máte:", money, "KČ")
-            menu1(money, prezdivka)
-        else:
-            karty_lizani(ztrata, vyhra, money, prezdivka)
-    elif volba_karty == str(2):
-        print("Dealerovy karty jsou:")
-        karty_zacatek_dealer()
-        if total(dealerovy_karty) == 21:
-            print("BlackJack, prohráli jste!!!")
-            money = ztrata
-            print("Máte:", money, "KČ")
-            menu1(money, prezdivka)
-        elif total(dealerovy_karty) < 17:
-            print("\nDealerova dolíznutá karta je:")
-            karta_random_dealer()
-            while total(dealerovy_karty) < 17:
+#Funkce sázky
+def hra(money, prezdivka):
+    # Vytvoření karet na hraní
+    hracovy_karty = []
+    dealerovy_karty = []
+    balicek = [2, 3, 4, 5, 6, 7, 8, 9, 10, "J", "Q", "K", "A"]
+
+    def total(hand):
+        total = 0
+        for card in hand:
+            if card == "J" or card == "Q" or card == "K":
+                total += 10
+            elif card == "A":
+                if total >= 11:
+                    total += 1
+                else:
+                    total += 11
+            else:
+                total += card
+        return total
+
+    # karty hráče
+    def karty_zacatek():
+        for i in range(2):
+            random.shuffle(balicek)
+            karta_2 = balicek.pop()
+            if karta_2 == "J":
+                karta_2 = 10
+            if karta_2 == "Q":
+                karta_2 = 10
+            if karta_2 == "K":
+                karta_2 = 10
+            if karta_2 == "A":
+                karta_2 = 10
+            hracovy_karty.append(karta_2)
+            print(karta_2)
+
+    def karta_random():
+        for a in range(1):
+            random.shuffle(balicek)
+            karta_1 = balicek.pop()
+            if karta_1 == "J":
+                karta_1 = 10
+            if karta_1 == "Q":
+                karta_1 = 10
+            if karta_1 == "K":
+                karta_1 = 10
+            if karta_1 == "A":
+                karta_1 = 10
+            hracovy_karty.append(karta_1)
+            print(karta_1)
+
+    # karty dealera
+    def karty_zacatek_dealer():
+        for i in range(2):
+            random.shuffle(balicek)
+            karta_2 = balicek.pop()
+            if karta_2 == "J":
+                karta_2 = 10
+            if karta_2 == "Q":
+                karta_2 = 10
+            if karta_2 == "K":
+                karta_2 = 10
+            if karta_2 == "A":
+                karta_2 = 10
+            dealerovy_karty.append(karta_2)
+            print(karta_2)
+
+    def karta_random_dealer():
+        for a in range(1):
+            random.shuffle(balicek)
+            karta_1 = balicek.pop()
+            if karta_1 == "J":
+                karta_1 = 10
+            if karta_1 == "Q":
+                karta_1 = 10
+            if karta_1 == "K":
+                karta_1 = 10
+            if karta_1 == "A":
+                karta_1 = 10
+            dealerovy_karty.append(karta_1)
+            print(karta_1)
+
+    # Funkce na lízání karet
+    def karty_lizani(ztrata, vyhra, money, prezdivka, karta_random, karta_random_dealer, karty_zacatek_dealer,
+                     karty_zacatek):
+        print("\nChcete dolíznout další kartu?")
+        print("\nANO- 1")
+        print("NE- 2")
+        volba_karty = input("\nVaše volba->")
+        # Volby hráče na líznutí či stání
+        if volba_karty == str(1):
+            print("\nDolízli jste si:")
+            karta_random()
+            if total(hracovy_karty) == 21:
+                print("BlackJack, vyhráli jste!!!")
+                money = vyhra
+                print("Máte:", money, "KČ")
+                menu1(money, prezdivka)
+            elif total(hracovy_karty) > 21:
+                print("\nBohužel jste prohráli!!!")
+                money = ztrata
+                print("Máte:", money, "KČ")
+                menu1(money, prezdivka)
+            else:
+                karty_lizani(ztrata, vyhra, money, prezdivka, karta_random, karta_random_dealer, karty_zacatek_dealer,
+                     karty_zacatek)
+        elif volba_karty == str(2):
+            print("Dealerovy karty jsou:")
+            karty_zacatek_dealer()
+            if total(dealerovy_karty) == 21:
+                print("BlackJack, prohráli jste!!!")
+                money = ztrata
+                print("Máte:", money, "KČ")
+                menu1(money, prezdivka)
+            elif total(dealerovy_karty) < 17:
+                print("\nDealerova dolíznutá karta je:")
                 karta_random_dealer()
-            if total(dealerovy_karty) < 21:
+                while total(dealerovy_karty) < 17:
+                    karta_random_dealer()
+                if total(dealerovy_karty) < 21:
+                    if total(hracovy_karty) > total(dealerovy_karty):
+                        print("\nVyhráli jste!!!")
+                        money = vyhra
+                        print("Máte:", money, "KČ")
+                        menu1(money, prezdivka)
+                    elif total(hracovy_karty) < total(dealerovy_karty):
+                        print("\nBohužel jste prohráli!!!")
+                        money = ztrata
+                        print("Máte:", money, "KČ")
+                        menu1(money, prezdivka)
+                    elif total(hracovy_karty) == total(dealerovy_karty):
+                        print("\nVyhráli jste, hodnota vašich karet byla stejná!!!")
+                        money = vyhra
+                        print("Máte:", money, "KČ")
+                        menu1(money, prezdivka)
+                elif total(dealerovy_karty) == 21:
+                    print("\nBlackJack, bohužel jste prohráli!!!")
+                    money = ztrata
+                    print("Máte:", money, "KČ")
+                    menu1(money, prezdivka)
+                elif total(dealerovy_karty) > 21:
+                    print("\nVyhráli jste!!!")
+                    money = vyhra
+                    print("Máte:", money, "KČ")
+                    menu1(money, prezdivka)
+            elif total(dealerovy_karty) >= 17:
                 if total(hracovy_karty) > total(dealerovy_karty):
                     print("\nVyhráli jste!!!")
                     money = vyhra
@@ -200,37 +247,10 @@ def karty_lizani(ztrata, vyhra, money, prezdivka):
                     money = vyhra
                     print("Máte:", money, "KČ")
                     menu1(money, prezdivka)
-            elif total(dealerovy_karty) == 21:
-                print("\nBlackJack, bohužel jste prohráli!!!")
-                money = ztrata
-                print("Máte:", money, "KČ")
-                menu1(money, prezdivka)
-            elif total(dealerovy_karty) > 21:
-                print("\nVyhráli jste!!!")
-                money = vyhra
-                print("Máte:", money, "KČ")
-                menu1(money, prezdivka)
-        elif total(dealerovy_karty) >= 17:
-            if total(hracovy_karty) > total(dealerovy_karty):
-                print("\nVyhráli jste!!!")
-                money = vyhra
-                print("Máte:", money, "KČ")
-                menu1(money, prezdivka)
-            elif total(hracovy_karty) < total(dealerovy_karty):
-                print("\nBohužel jste prohráli!!!")
-                money = ztrata
-                print("Máte:", money, "KČ")
-                menu1(money, prezdivka)
-            elif total(hracovy_karty) == total(dealerovy_karty):
-                print("\nVyhráli jste, hodnota vašich karet byla stejná!!!")
-                money = vyhra
-                print("Máte:", money, "KČ")
-                menu1(money, prezdivka)
-    else:
-        print("\nNeplatný znak!!!")
-        karty_lizani(ztrata, vyhra, money, prezdivka)
-#Funkce sázky
-def hra(money, prezdivka):
+        else:
+            print("\nNeplatný znak!!!")
+            karty_lizani(ztrata, vyhra, money, prezdivka, karta_random, karta_random_dealer, karty_zacatek_dealer,
+                     karty_zacatek)
     while True:
         print("\nAktuálně máte:", money, "KČ")
         sazka = input("\nKolik chcete vsadit?")
@@ -252,7 +272,7 @@ def hra(money, prezdivka):
                     print("Máte:", money, "KČ")
                     menu1(money, prezdivka)
                 else:
-                    karty_lizani(ztrata, vyhra, money, prezdivka)
+                    karty_lizani(ztrata, vyhra, money, prezdivka, karta_random, karta_random_dealer, karty_zacatek_dealer, karty_zacatek)
                 break
             else:
                 print("\nNemůžete vsadit více peněz než máte!!!")
@@ -297,7 +317,7 @@ def prezdivka1(hra):
                                 userData = {"name": name, "money": money, "stats": stats}
                                 print("\nZe začátku máte: ", money, "KČ")
                                 menu1(money, prezdivka)
-                                break
+                        break
                     elif (vytvorit == "n" or vytvorit == "N"):
                         print("\nUkončuji program")
                         quit()
